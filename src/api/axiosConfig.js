@@ -3,24 +3,32 @@ import axios from "axios";
 
 const api = axios.create({
   baseURL: "https://expense-management-backend-qtjw.onrender.com/api",
-  headers: { "Content-Type": "application/json" },
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+// Attach the token before each request
+api.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-  return config;
-});
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
 
+// Handle failed responses
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     const isAuthRequest = Boolean(
-      error.config?.url && error.config.url.startsWith("/auth/")
+      error.config?.url &&
+      error.config.url.startsWith("/auth/")
     );
 
     if (error.response?.status === 401 && !isAuthRequest) {
@@ -35,8 +43,3 @@ api.interceptors.response.use(
 
 export default api;
 
-    return Promise.reject(error);
-  }
-);
-
-export default api;
